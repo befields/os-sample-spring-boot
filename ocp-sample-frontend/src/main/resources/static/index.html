@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Openshift Sample: Frontend</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <img src="Logo-Red_Hat-OpenShift-A-Standard-RGB.png" width="375">
+        <p>Welcome to Openshift Frontend application</p>
+        <table>
+            <tr>
+                <td>Frontend:</td>
+                <td id="frontend"></td>
+            </tr>
+            <tr>
+                <td>Backend:</td>
+                <td id="backend"></td>
+            </tr>
+            <tr>
+                <td>Database:</td>
+                <td id="databaseCount"></td>
+            </tr>
+        </table>
+        <input type="button" onclick="addDatabaseEntries(4)" value="Add 4 database entries"/>
+        <script>
+            function loadData(elemID, url) {
+                var xhttp = new XMLHttpRequest();
+                xhttp.onreadystatechange = function () {
+                    elem = document.getElementById(elemID);
+                    if (this.readyState == 4) {
+                      if (this.status == 200) {
+                        elem.innerHTML = this.responseText;
+                      }else{
+                        elem.innerHTML = this.status;
+                      }
+                    }
+                };
+                xhttp.open("GET", url, true);
+                xhttp.send();
+            }
+            function addDatabaseEntries(num){
+                loadData('databaseCount','/backend/addApplicants/'+num)
+            }
+            function callAjax(){
+                loadData('frontend','./status')
+                loadData('backend','./backend/status')
+                loadData('databaseCount','./backend/numApplicants')
+            }
+            callAjax();
+            setInterval(callAjax, 3000);
+        </script>
+    </body>
+</html>

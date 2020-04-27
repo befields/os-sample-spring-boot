@@ -1,0 +1,76 @@
+def MVN_REPO            = "/tmp/workspace/maven/repository/"
+def MVN_CMD             = "mvn -Dmaven.repo.local=${MVN_REPO}"
+def MVN_INSTALL         = "clean install -DskipTests=true"
+def MVN_TEST            = "test"
+def BASE_OS_IMAGE       = "tomcat:8.5.54-jdk8-corretto"
+def APP_NAME            = "frontend"
+def GIT_PROJECT         = "ocp-sample-frontend"
+def OC_BUILD_TEMPLATE   = "${GIT_PROJECT}/build-template.yml"
+def OC_DEPLOY_TEMPLATE  = "${GIT_PROJECT}/deployment-template.yml"
+def PORT                = "8080"
+def OC_DEPLOY_PROJECT   = "cicd"
+
+pipeline {
+
+    agent {
+        label "maven"
+    }
+
+    stages {
+        stage ("Checkout repos"){
+            steps {
+                sh 'echo Checking out the git repo for build artifacts'
+                checkout([$class: "GitSCM",
+                    branches: [[name: "*/master"]],
+                    doGenerateSubmoduleConfigurations: false,
+                    extensions: [[$class: "RelativeTargetDirectory",
+                    relativeTargetDir: "./"]],
+                    submoduleCfg: [],
+                    userRemoteConfigs:
+                    [[credentialsId: "gog-git-creds", url: "http://gogs-cicd.apps.cluster/anixon/openshift-sample.git"]]]
+                )
+            }
+        }
+        stage ("Compile code"){
+            steps{
+                dir ("${GIT_PROJECT}") {
+                    sh "echo Compiling code"
+                    sh "${MVN_CMD}   ${MVN_INSTALL}"
+                }
+            }
+        }
+        stage ("Perform Tests"){
+            steps{
+                dir ("${GIT_PROJECT}") {
+                    sh "echo Performing maven tests"
+                    sh "${MVN_CMD}   ${MVN_TEST}"
+                }
+            }
+        }
+        stage ("Delete existing objects"){
+          steps{
+            sh "oc delete all --selector app=${APP_NAME}"
+          }
+        }
+        stage ("Create Image"){
+            steps {
+                sh "echo Creating objects"
+                sh "oc process -f ${OC_BUILD_TEMPLATE} -p NAME=${APP_NAME} -p FROM_IMAGE=${BASE_OS_IMAGE} -p IMAGE_KIND=DockerImage | oc apply -f -"
+
+                sh "echo Building Image"
+                sh "oc start-build ${APP_NAME} --from-dir ${GIT_PROJECT}/ --follow"
+            }
+        }
+        stage ("Deploy Image"){
+            steps {
+                sh "echo Configuring Application"
+                sh "oc process -f ${GIT_PROJECT}/deployment-template.yml -p NAME=${APP_NAME} -p PORT=${PORT} -p OC_BUILD_PROJECT_NAME=${OC_DEPLOY_PROJECT} | oc apply -f -"
+                sh "oc set env dc ${APP_NAME} --overwrite BACKEND_HOSTNAME=backend"
+                sh "oc set env dc ${APP_NAME} --overwrite BACKEND_PORT=8080"
+
+                sh "echo Application configured, spinning up an instance of it"
+                sh "oc scale dc ${APP_NAME} --replicas=1"
+            }
+        }
+    }
+}

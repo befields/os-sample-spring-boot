@@ -1,0 +1,59 @@
+apiVersion: template.openshift.io/v1
+kind: Template
+labels:
+  template: build-template
+message: |-
+   This is a custom message
+metadata:
+  annotations:
+    description: |-
+      This is a description
+    iconClass: to-be-set
+    openshift.io/display-name: Generic base build config
+    openshift.io/documentation-url: https://docs.openshift.org/latest/using_images/to-be-set
+    openshift.io/long-description: This template is intended to serve as a generic build template for all images
+    openshift.io/provider-display-name: Org
+    openshift.io/support-url: https://org.domain
+    tags: ${TAG}
+  name: ${NAME}
+objects:
+- apiVersion: build.openshift.io/v1
+  kind: BuildConfig
+  metadata:
+    labels:
+      app: ${NAME}
+    name: ${NAME}
+  spec:
+    failedBuildsHistoryLimit: 2
+    source:
+      type: Binary
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${NAME}:${TAG}
+    runPolicy: Serial
+    strategy:
+      dockerStrategy:
+        from:
+          kind: ${IMAGE_KIND}
+          name: ${FROM_IMAGE}
+      type: Docker
+    successfulBuildsHistoryLimit: 2
+- apiVersion: image.openshift.io/v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: ${NAME}
+    name: ${NAME}
+  spec:
+    lookupPolicy:
+      local: false
+parameters:
+- name: NAME
+  required: true
+- name: FROM_IMAGE
+  required: true
+- name: IMAGE_KIND
+  value: ImageStreamTag
+- name: TAG
+  value: latest
