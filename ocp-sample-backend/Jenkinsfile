@@ -9,6 +9,7 @@ def OC_BUILD_TEMPLATE   = "${GIT_PROJECT}/build-template.yml"
 def OC_DEPLOY_TEMPLATE  = "${GIT_PROJECT}/deployment-template.yml"
 def PORT                = "8080"
 def OC_DEPLOY_PROJECT   = "cicd"
+def GIT_REPO            = "https://github.com/anixon-rh/os-sample-spring-boot.git"
 
 pipeline {
 
@@ -27,7 +28,7 @@ pipeline {
                     relativeTargetDir: "./"]],
                     submoduleCfg: [],
                     userRemoteConfigs:
-                    [[credentialsId: "gog-git-creds", url: "http://gogs-cicd.apps.cluster/anixon/openshift-sample.git"]]]
+                    [[credentialsId: "", url: "${GIT_REPO}"]]]
                 )
             }
         }
