@@ -9,6 +9,7 @@ def OC_BUILD_TEMPLATE   = "${GIT_PROJECT}/build-template.yml"
 def OC_DEPLOY_TEMPLATE  = "${GIT_PROJECT}/deployment-template.yml"
 def PORT                = "8080"
 def OC_DEPLOY_PROJECT   = "cicd"
+def IMAGE_REGISTRY      = "docker-registry.default.svc:5000"
 def GIT_REPO            = "https://github.com/anixon-rh/os-sample-spring-boot.git"
 
 pipeline {
@@ -65,7 +66,7 @@ pipeline {
         stage ("Deploy Image"){
             steps {
                 sh "echo Configuring Application"
-                sh "oc process -f ${GIT_PROJECT}/deployment-template.yml -p NAME=${APP_NAME} -p PORT=${PORT} -p OC_BUILD_PROJECT_NAME=${OC_DEPLOY_PROJECT} | oc apply -f -"
+                sh "oc process -f ${GIT_PROJECT}/deployment-template.yml -p NAME=${APP_NAME} -p PORT=${PORT} -p OC_BUILD_PROJECT_NAME=${OC_DEPLOY_PROJECT} -p IMAGE_REGISTRY=${IMAGE_REGISTRY} | oc apply -f -"
                 sh "oc set env dc ${APP_NAME} --overwrite SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/applicantdb"
                 sh "oc set env dc ${APP_NAME} --overwrite SPRING_DATASOURCE_USERNAME=sampleuser"
                 sh "oc set env dc ${APP_NAME} --overwrite SPRING_DATASOURCE_PASSWORD=password123"
