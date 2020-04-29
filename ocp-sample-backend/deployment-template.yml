@@ -45,7 +45,7 @@ objects:
           deploymentconfig: ${NAME}
       spec:
         containers:
-        - image: docker-registry.default.svc:5000/${OC_BUILD_PROJECT_NAME}/${NAME}:${IMAGE_TAG}
+        - image: ${IMAGE_REGISTRY}/${OC_BUILD_PROJECT_NAME}/${NAME}:${IMAGE_TAG}
           imagePullPolicy: Always
           name: ${NAME}
           ports:
@@ -87,3 +87,5 @@ parameters:
   required: true
 - name: IMAGE_TAG
   value: "latest"
+- name: IMAGE_REGISTRY
+  value: docker-registry.default.svc:5000
