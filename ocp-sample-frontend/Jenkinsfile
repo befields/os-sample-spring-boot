@@ -9,7 +9,7 @@ def OC_BUILD_TEMPLATE   = "${GIT_PROJECT}/build-template.yml"
 def OC_DEPLOY_TEMPLATE  = "${GIT_PROJECT}/deployment-template.yml"
 def PORT                = "8080"
 def OC_DEPLOY_PROJECT   = "cicd"
-def IMAGE_REGISTRY      = "docker-registry.default.svc:5000"
+def IMAGE_REGISTRY      = "image-registry.openshift-image-registry.svc:5000"
 def GIT_REPO            = "https://github.com/anixon-rh/os-sample-spring-boot.git"
 
 pipeline {
